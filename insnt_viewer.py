@@ -1,5 +1,6 @@
 import idaapi
 import PyQt5, PyQt5.uic
+import insnt_t_ui
 
 class insnt_viewer_plugin(idaapi.plugin_t):
 	flags = idaapi.PLUGIN_KEEP 
@@ -13,6 +14,7 @@ class insnt_viewer_plugin(idaapi.plugin_t):
 	last_ea = 0
 	timer_obj = None
 	viewer = None
+	parentWidget = None
 	optype_tText = ["o_void", "o_reg", "o_mem", "o_phrase", "o_displ", "o_imm", "o_far", "o_near", "o_idspec0", "o_idspec1", "o_idspec2", "o_idspec3", "o_idspec4", "o_idspec5"]
 	dtype_tText = ["dt_byte", "dt_word", "dt_dword", "dt_float", "dt_double", "dt_tbyte", "dt_packreal", "dt_qword", "dt_byte16", "dt_code", "dt_void", "dt_fword", "dt_bitfild", "dt_string", "dt_unicode", "dt_ldbl", "dt_byte32", "dt_byte64"]
 	featuresList = ["CF_STOP", "CF_CALL", "CF_CHG1", "CF_CHG2", "CF_CHG3", "CF_CHG4", "CF_CHG5", "CF_CHG6", "CF_USE1", "CF_USE2", "CF_USE3", "CF_USE4", "CF_USE5", "CF_USE6", "CF_JUMP", "CF_SHFT", "CF_HLL", "CF_CHG7", "CF_CHG8", "CF_USE7", "CF_USE8"]
@@ -21,11 +23,13 @@ class insnt_viewer_plugin(idaapi.plugin_t):
 
 	def init(self):
 		self.timer_obj = idaapi.register_timer(250, self.updateView)
-		self.viewer = PyQt5.uic.loadUi("insnt_t_ui.ui")
-		self.savedcloseEvent = self.viewer.closeEvent
-		self.viewer.closeEvent = self.closeEvent
+		self.parentWidget = QtWidgets.QWidget()
+		self.viewer = insnt_t_ui.Ui_Form()
+		self.viewer.setupUi(self.parentWidget)
+		self.savedcloseEvent = self.parentWidget.closeEvent
+		self.parentWidget.closeEvent = self.closeEvent
 		
-		self.viewer.show()
+		self.parentWidget.show()
 		self.viewer.auxpref_tree.topLevelItem(0).setExpanded(True)	
 		self.viewer.auxpref_tree.topLevelItem(1).setExpanded(True)	
 		self.viewer.auxpref_tree.topLevelItem(2).setExpanded(True)				
@@ -145,7 +149,7 @@ class insnt_viewer_plugin(idaapi.plugin_t):
 		if self.timer_obj != None:
 			return
 		self.updateView()
-		self.viewer.show()
+		self.parentWidget.show()
 		self.timer_obj = idaapi.register_timer(250, self.updateView)
 		return
 
